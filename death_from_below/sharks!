@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+filename = ARGV.first
+code = File.read filename
+
+def translate(code)
+  map = %w[dun-nun swim growl chomp]
+  return map[code] if code.kind_of? Fixnum
+  map.index code
+end
+
+def to_sharks(ruby_code)
+  ruby_code.each_byte
+           .map { |byte| [byte%4, byte/4%4, byte/4/4%4, byte/4/4/4%4] }
+           .flatten
+           .map { |nibblet| translate nibblet }
+           .each_slice(8)
+           .map { |slice| slice.join(' ') << "\n" }
+           .join
+end
+
+def from_sharks(shark_code)
+  shark_code.scan(/\S+/)
+            .map(&method(:translate))
+            .each_slice(4)
+            .map { |a,b,c,d| a + (4*b) + (4*4*c) + (4*4*4*d) }
+            .flatten
+            .pack('C*')
+end
+
+if filename.end_with? '.rb'
+  File.write filename.sub(/\.rb$/, '.sharks'), to_sharks(code)
+else
+  eval from_sharks code
+end

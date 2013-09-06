@@ -1,0 +1,25 @@
+require 'tmpdir'
+
+RSpec::Matchers.define :be_sharky do
+  match do |lang|
+    lang =~ /chomp/i
+  end
+end
+
+describe 'shark!' do
+  def sharks!(filename)
+    path = File.expand_path '../death_from_below/sharks!', __FILE__
+    `#{path} #{filename}`
+  end
+
+  it 'encodes the ruby files into shark files, and executes the shark files' do
+    Dir.mktmpdir do |dir|
+      Dir.chdir dir do
+        File.write 'hello_world.rb', "puts 'hello, world'"
+        sharks! 'hello_world.rb'
+        File.read('hello_world.sharks').should be_sharky
+        sharks!('hello_world.sharks').should == "hello, world\n"
+      end
+    end
+  end
+end
